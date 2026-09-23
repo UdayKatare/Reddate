@@ -1,4 +1,4 @@
-// Watch-together / virtual-date platform — room-based sync server.
+// Reddate / virtual-date platform — room-based sync server.
 //
 // Privacy model: chat is end-to-end encrypted in the browser. Each room has a
 // symmetric key that lives only in the client URL fragment (#...), which is
@@ -237,5 +237,5 @@ io.on('connection', (socket) => {
 
 const PORT = process.env.PORT || 3000;
 server.listen(PORT, () => {
-    console.log(`🚀 Watch-together server running on http://localhost:${PORT}`);
+    console.log(`🚀 Reddate server running on http://localhost:${PORT}`);
 });

@@ -1,4 +1,4 @@
-/* WatchTogether client.
+/* Reddate client.
  *
  * End-to-end encryption: each room has an AES-GCM key that lives only in the
  * URL fragment (#room=<id>&k=<key>). The fragment is never sent to the server,
@@ -67,6 +67,7 @@ let currentSrc = '';        // videoId (yt) or url (direct) currently loaded
 let isPlayerReady = false;
 let isVideoPlaying = false;
 let ignoreNextStateChange = false;
+let pendingState = null;    // play/pause/seek to apply once the player is ready
 let typingTimer = null;
 
 // Generic trigger words -> reaction emoji. Detected client-side on decrypted
@@ -273,7 +274,7 @@ async function tenorSearch(query) {
     const base = query.trim()
         ? `https://tenor.googleapis.com/v2/search?q=${encodeURIComponent(query)}`
         : 'https://tenor.googleapis.com/v2/featured';
-    const url = `${base}${base.includes('?') ? '&' : '?'}key=${cfg.key}&client_key=watchtogether&limit=24&media_filter=tinygif,gif`;
+    const url = `${base}${base.includes('?') ? '&' : '?'}key=${cfg.key}&client_key=reddate&limit=24&media_filter=tinygif,gif`;
     const grid = document.getElementById('gifGrid');
     try {
         const data = await (await fetch(url)).json();
@@ -385,6 +386,17 @@ function onLocalPlayPause(playing) {
     socket.emit('video-playpause', { isPlaying: playing, currentTime: vp ? vp.getCurrentTime() : 0 });
 }
 
+function applyPending() {
+    if (!pendingState || !vp) return;
+    const s = pendingState;
+    pendingState = null;
+    ignoreNextStateChange = true;
+    if (s.currentTime) vp.seekTo(s.currentTime);
+    s.isPlaying ? vp.play() : vp.pause();
+    isVideoPlaying = s.isPlaying;
+    updatePlayPauseButton();
+}
+
 function createYouTubePlayer(videoId) {
     if (!window.YT || !YT.Player) { setTimeout(() => createYouTubePlayer(videoId), 300); return; }
     destroyPlayer();
@@ -395,7 +407,7 @@ function createYouTubePlayer(videoId) {
         height: '400', width: '100%', videoId,
         playerVars: { autoplay: 0, controls: 1, rel: 0, modestbranding: 1 },
         events: {
-            onReady: () => { isPlayerReady = true; updatePlayPauseButton(); },
+            onReady: () => { isPlayerReady = true; updatePlayPauseButton(); applyPending(); },
             onStateChange: (e) => {
                 if (consumeIgnore()) return;
                 const playing = e.data === YT.PlayerState.PLAYING;
@@ -422,7 +434,7 @@ function createDirectPlayer(src) {
     v.playsInline = true;
     v.style.cssText = 'width:100%;height:400px;background:#000;border-radius:4px;';
     stageEl().appendChild(v);
-    v.addEventListener('loadeddata', () => { isPlayerReady = true; updatePlayPauseButton(); });
+    v.addEventListener('loadeddata', () => { isPlayerReady = true; updatePlayPauseButton(); applyPending(); });
     v.addEventListener('play', () => { if (!consumeIgnore()) onLocalPlayPause(true); });
     v.addEventListener('pause', () => { if (!consumeIgnore()) onLocalPlayPause(false); });
     v.addEventListener('seeked', () => socket.emit('video-seek', { currentTime: v.currentTime }));
@@ -430,7 +442,7 @@ function createDirectPlayer(src) {
     vp = {
         getCurrentTime: () => v.currentTime || 0,
         seekTo: (t) => { v.currentTime = t; },
-        play: () => v.play(),
+        play: () => { const p = v.play(); if (p && p.catch) p.catch(() => showToast('Tap the video once to start playback ▶️')); },
         pause: () => v.pause(),
         destroy: () => { v.pause(); v.removeAttribute('src'); v.load(); v.remove(); }
     };
@@ -453,10 +465,11 @@ function wireVideoEvents() {
         addSystemMessage(`🎬 ${data.user} loaded a video`);
     });
     socket.on('video-playpause-sync', data => {
-        if (!vp || !isPlayerReady) return;
         isVideoPlaying = data.isPlaying;
         updatePlayPauseButton();
+        if (!vp || !isPlayerReady) { pendingState = { isPlaying: data.isPlaying, currentTime: data.currentTime }; return; }
         ignoreNextStateChange = true;
+        if (data.currentTime) vp.seekTo(data.currentTime);
         data.isPlaying ? vp.play() : vp.pause();
     });
     socket.on('video-progress-sync', data => {
@@ -468,12 +481,12 @@ function wireVideoEvents() {
     });
     socket.on('video-sync', state => {
         if (!ensurePlayer(state)) return;
-        const apply = () => {
-            ignoreNextStateChange = true;
-            state.isPlaying ? vp.play() : vp.pause();
-            if (state.currentTime) vp.seekTo(state.currentTime);
-        };
-        isPlayerReady ? apply() : setTimeout(apply, 1200);
+        isVideoPlaying = state.isPlaying;
+        updatePlayPauseButton();
+        if (!isPlayerReady) { pendingState = { isPlaying: state.isPlaying, currentTime: state.currentTime }; return; }
+        ignoreNextStateChange = true;
+        if (state.currentTime) vp.seekTo(state.currentTime);
+        state.isPlaying ? vp.play() : vp.pause();
     });
 
     // Periodically share our position so late joiners / drifters stay in sync.

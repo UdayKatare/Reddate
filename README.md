@@ -1,24 +1,40 @@
-# WatchTogether
+# Reddate
 
-Create a private room, drop in a YouTube link, and watch it in perfect sync
-while you chat — with **end-to-end encrypted** messages. No accounts, no
-database, nothing stored. Rooms disappear the moment everyone leaves.
+Create a private room, drop in a video, and watch it in perfect sync while you
+chat — with **end-to-end encrypted** messages and an optional **1:1 video/audio
+call**. No accounts, no database, nothing stored. Rooms disappear the moment
+everyone leaves.
 
 Originally built as a two-person virtual-date page, now reworked so **anyone,
-anywhere** can spin up a room and share the link.
+anywhere** can spin up a room and share the link. Styled after Reddit
+(light theme: white + orange).
 
 ## Features
 
-- 🎬 **Synced YouTube playback** — play, pause, seek and load videos together; late joiners auto-catch-up.
-- 🔒 **End-to-end encrypted chat** — messages are encrypted in the browser with AES-GCM. The room key lives only in the invite link (after the `#`) and never touches the server.
-- 🔗 **Shareable room links** — create a room, copy the invite link, send it to anyone.
-- ⌨️ **Live typing indicators** and reaction "rain" on trigger words (`love`, `lol`, `fire`, …).
+- 🎬 **Synced video playback** — YouTube links *and* direct video URLs (`.mp4`,
+  `.webm`, `.ogg`, …). Play, pause, seek and load together; late joiners and
+  drifters auto-catch-up. Playback commands that arrive before a viewer's player
+  is ready are buffered and applied on load, so nobody has to "press play first".
+- 🔒 **End-to-end encrypted chat** — messages are encrypted in the browser with
+  AES-GCM 256. The room key lives only in the invite link (after the `#`) and
+  never touches the server, which relays opaque ciphertext only.
+- 📹 **1:1 video/audio call** — peer-to-peer over WebRTC, end-to-end encrypted by
+  DTLS-SRTP. Signaling is relayed through the room; media never touches the
+  server. Includes incoming-call banner, mic/camera toggles, and hang-up.
+- 🖼️ **Image & GIF sharing** — upload an image (sent E2E as a data URL, 2 MB cap)
+  or paste a GIF/image URL into the chat.
+- ⌨️ **Live typing indicators** and reaction "rain" on trigger words (`love`,
+  `lol`, `fire`, …), detected locally on decrypted text.
 - 💬 **Lightweight polls** to keep the room fun.
-- 👥 **Multi-participant rooms** — share the link with as many people as you like.
+- ⬆️⬇️ **Reddit-style UI** — subreddit-style header, OP tag, cosmetic upvote/downvote,
+  and a "Comment" send button.
+- 🔗 **Shareable invite links** — create a room, copy the link, send it to anyone.
+- 👥 **Multi-participant rooms** — share the link with as many people as you like
+  (the call is 1:1; chat and video sync are group-wide).
 
 ## How the privacy model works
 
-WatchTogether uses a shared-key end-to-end encryption scheme:
+Reddate uses a shared-key end-to-end encryption scheme:
 
 1. When you create a room, the browser generates a random room ID and a 256-bit
    AES-GCM key.
@@ -33,6 +49,16 @@ WatchTogether uses a shared-key end-to-end encryption scheme:
 > like a password. This protects against a curious/compromised server, not
 > against someone you shared the link with. Chat history is never persisted.
 
+### What is and isn't private
+
+| Data | Private? |
+|------|----------|
+| Chat text & uploaded images | ✅ End-to-end encrypted (AES-GCM); server sees ciphertext only |
+| Video/audio call media | ✅ End-to-end encrypted by WebRTC (DTLS-SRTP); peer-to-peer |
+| Reaction detection | ✅ Runs locally on decrypted text |
+| Which video is loaded / playback position | ⚠️ Relayed in the clear (server coordinates sync) |
+| GIF-by-URL and direct video links | ⚠️ Fetched from the external host, revealing your IP to it — not E2E |
+
 ## Getting started
 
 Requires Node.js 14+.
@@ -43,9 +69,15 @@ npm start          # or: npm run dev  (auto-reload with nodemon)
 ```
 
 Then open http://localhost:3000, enter a display name, and click
-**Create a room**. Copy the invite link and share it.
+**Create a room**. Copy the invite link and share it. Paste a YouTube or direct
+video URL to start watching, and hit **📹 Start Call** for a 1:1 video chat.
 
 Set a custom port with `PORT=8080 npm start`.
+
+Optional environment variables:
+
+- `TURN_URL`, `TURN_USERNAME`, `TURN_CREDENTIAL` — a TURN relay for calls behind
+  strict NATs. STUN-only (default) works on most networks.
 
 ## Project structure
 
@@ -85,9 +117,10 @@ Then open the service URL, pick a name, and create a room.
 
 ## Roadmap
 
-- More room features (reactions, shared queue, presence)
-- Optional room capacity / "date" vs "group" modes
-- Support for more video sources beyond YouTube
+- Shared video queue and presence
+- Group calls (currently 1:1)
+- More video sources
+- QR-code room invites
 
 ## License
 

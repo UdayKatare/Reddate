@@ -1,5 +1,5 @@
 {
-  "name": "watchtogether",
+  "name": "reddate",
   "version": "2.0.0",
   "description": "Rooms to watch YouTube in sync and chat with end-to-end encryption",
   "main": "server.js",
