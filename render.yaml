@@ -1,0 +1,28 @@
+# Render Blueprint for WatchTogether.
+# Deploy: push to GitHub, then in Render click "New +" → "Blueprint" and pick
+# this repo. Render reads this file and provisions the service automatically.
+#
+# The app is a single long-lived Node process (Socket.IO needs a persistent
+# connection + in-memory room state), so it runs as a "web" service, NOT a
+# static site or serverless function. Render terminates TLS for us, which also
+# satisfies the HTTPS requirement for getUserMedia (video/audio calls).
+services:
+  - type: web
+    name: watchtogether
+    runtime: node
+    plan: free
+    buildCommand: npm install
+    startCommand: npm start
+    healthCheckPath: /
+    envVars:
+      # Render injects PORT automatically; server.js already reads process.env.PORT.
+      - key: NODE_VERSION
+        value: 20.11.1
+      # Optional TURN relay for calls behind strict NATs. Leave unset to use
+      # STUN only (works on most networks). Set these in the Render dashboard.
+      - key: TURN_URL
+        sync: false
+      - key: TURN_USERNAME
+        sync: false
+      - key: TURN_CREDENTIAL
+        sync: false
