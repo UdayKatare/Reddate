@@ -7,138 +7,158 @@
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
 
+        /* Theme palettes. Dark (the original night palette) is the default;
+           [data-theme="light"] on <html> swaps to the Reddit-flavoured white/orange theme. */
+        :root {
+            --bg: #0b1426; --panel: #1a1a1b; --surface: #272729; --border: #343536;
+            --text: #d7dadc; --muted: #818384; --green: #46d160; --green-bg: #2d5016;
+            --accent: #ff4500; --accent-hover: #e03d00; --blue: #0079d3; --blue-hover: #1484d6;
+            --downvote: #7193ff; --shadow: rgba(0,0,0,0.45); --shadow-lg: rgba(0,0,0,0.5);
+        }
+        [data-theme="light"] {
+            --bg: #dae0e6; --panel: #ffffff; --surface: #f6f7f8; --border: #cccccc;
+            --text: #1c1c1c; --muted: #787c7e; --green: #2a8c4a; --green-bg: #e5f6e9;
+            --accent: #ff4500; --accent-hover: #e03d00; --blue: #0079d3; --blue-hover: #1484d6;
+            --downvote: #7193ff; --shadow: rgba(0,0,0,0.15); --shadow-lg: rgba(0,0,0,0.18);
+        }
+        .theme-toggle {
+            background: var(--surface); border: 1px solid var(--border); color: var(--text);
+            padding: 6px 12px; border-radius: 20px; font-size: 12px; cursor: pointer;
+        }
+        .theme-toggle:hover { border-color: var(--blue); }
+
         body {
             font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-            background: #dae0e6;
-            color: #1c1c1c;
+            background: var(--bg);
+            color: var(--text);
             overflow-x: hidden;
         }
 
         /* ---------- Lobby (Reddit-flavoured) ---------- */
         .lobby {
             position: fixed; inset: 0;
-            background: radial-gradient(1200px 600px at 50% -10%, #f6f7f8, #dae0e6);
+            background: radial-gradient(1200px 600px at 50% -10%, var(--surface), var(--bg));
             display: flex; align-items: center; justify-content: center;
             z-index: 20000; padding: 24px;
         }
         .lobby.hidden { display: none; }
         .lobby-card {
-            background: #ffffff;
-            border: 1px solid #cccccc;
+            background: var(--panel);
+            border: 1px solid var(--border);
             border-radius: 8px;
             padding: 28px;
             width: 100%;
             max-width: 440px;
             position: relative;
-            box-shadow: 0 20px 60px rgba(0,0,0,0.15);
+            box-shadow: 0 20px 60px var(--shadow);
         }
         .lobby-card::before {
             content: ''; position: absolute; left: 0; top: 0; bottom: 0;
-            width: 4px; background: #ff4500; border-radius: 8px 0 0 8px;
+            width: 4px; background: var(--accent); border-radius: 8px 0 0 8px;
         }
-        .lobby-card h1 { color: #ff4500; font-size: 24px; margin-bottom: 6px; }
-        .lobby-tagline { color: #787c7e; font-size: 13px; margin-bottom: 22px; }
-        .field-label { font-size: 12px; color: #787c7e; margin-bottom: 6px; display: block; }
+        .lobby-card h1 { color: var(--accent); font-size: 24px; margin-bottom: 6px; }
+        .lobby-tagline { color: var(--muted); font-size: 13px; margin-bottom: 22px; }
+        .field-label { font-size: 12px; color: var(--muted); margin-bottom: 6px; display: block; }
         .lobby-input {
             width: 100%; padding: 10px 12px; border-radius: 4px;
-            border: 1px solid #cccccc; background: #f6f7f8; color: #1c1c1c;
+            border: 1px solid var(--border); background: var(--surface); color: var(--text);
             font-size: 14px; margin-bottom: 16px;
         }
-        .lobby-input:focus { outline: none; border-color: #0079d3; }
+        .lobby-input:focus { outline: none; border-color: var(--blue); }
         .btn-primary {
             width: 100%; padding: 10px 16px; border: none; border-radius: 20px;
-            background: #ff4500; color: #fff; font-size: 14px; font-weight: 700;
+            background: var(--accent); color: #fff; font-size: 14px; font-weight: 700;
             cursor: pointer; transition: background 0.2s;
         }
-        .btn-primary:hover { background: #e03d00; }
-        .btn-primary:disabled { background: #cccccc; cursor: not-allowed; }
+        .btn-primary:hover { background: var(--accent-hover); }
+        .btn-primary:disabled { background: var(--border); cursor: not-allowed; }
         .privacy-note {
-            margin-top: 18px; font-size: 12px; color: #787c7e; line-height: 1.5;
-            border-top: 1px solid #cccccc; padding-top: 14px;
+            margin-top: 18px; font-size: 12px; color: var(--muted); line-height: 1.5;
+            border-top: 1px solid var(--border); padding-top: 14px;
         }
-        .privacy-note b { color: #2a8c4a; }
+        .privacy-note b { color: var(--green); }
 
         /* ---------- App shell ---------- */
-        .container { display: flex; height: 100vh; background: #dae0e6; }
+        .container { display: flex; height: 100vh; background: var(--bg); }
         .container.hidden { display: none; }
         .video-section { flex: 2; padding: 16px; display: flex; flex-direction: column; }
 
         .subreddit-header {
-            background: #ffffff; border: 1px solid #cccccc; border-radius: 4px;
+            background: var(--panel); border: 1px solid var(--border); border-radius: 4px;
             padding: 16px; margin-bottom: 16px; position: relative;
         }
         .subreddit-header::before {
             content: ''; position: absolute; left: 0; top: 0; bottom: 0;
-            width: 4px; background: #ff4500; border-radius: 4px 0 0 4px;
+            width: 4px; background: var(--accent); border-radius: 4px 0 0 4px;
         }
         .subreddit-header h1 {
-            color: #ff4500; font-size: 20px; font-weight: 500; margin-bottom: 8px;
+            color: var(--accent); font-size: 20px; font-weight: 500; margin-bottom: 8px;
             display: flex; align-items: center;
         }
         .subreddit-meta {
-            color: #787c7e; font-size: 12px; display: flex;
+            color: var(--muted); font-size: 12px; display: flex;
             justify-content: space-between; align-items: center; gap: 12px; flex-wrap: wrap;
         }
         .connection-status { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
         .status-indicator {
             width: 8px; height: 8px; border-radius: 50%;
-            background: #2a8c4a; animation: pulse 2s infinite;
+            background: var(--green); animation: pulse 2s infinite;
         }
         .status-indicator.disconnected { background: #ff4444; }
         .upvote-section { display: flex; align-items: center; gap: 4px; }
         .arrow {
             cursor: pointer; font-size: 16px; padding: 4px; border-radius: 2px; transition: all 0.2s;
         }
-        .arrow:hover { background: #cccccc; }
-        .arrow.upvoted { color: #ff4500; }
-        .arrow.downvoted { color: #7193ff; }
-        .vote-count { color: #1c1c1c; font-weight: bold; min-width: 16px; text-align: center; }
+        .arrow:hover { background: var(--border); }
+        .arrow.upvoted { color: var(--accent); }
+        .arrow.downvoted { color: var(--downvote); }
+        .vote-count { color: var(--text); font-weight: bold; min-width: 16px; text-align: center; }
         .share-btn {
-            background: #f6f7f8; border: 1px solid #cccccc; color: #1c1c1c;
+            background: var(--surface); border: 1px solid var(--border); color: var(--text);
             padding: 6px 12px; border-radius: 20px; font-size: 12px; cursor: pointer;
         }
-        .share-btn:hover { border-color: #0079d3; }
+        .share-btn:hover { border-color: var(--blue); }
         .video-post {
-            background: #ffffff; border: 1px solid #cccccc; border-radius: 4px;
+            background: var(--panel); border: 1px solid var(--border); border-radius: 4px;
             padding: 16px; flex: 1; display: flex; flex-direction: column;
         }
         .post-header {
             display: flex; align-items: center; gap: 8px; margin-bottom: 12px;
-            font-size: 12px; color: #787c7e; flex-wrap: wrap;
+            font-size: 12px; color: var(--muted); flex-wrap: wrap;
         }
-        .op-tag { background: #0079d3; color: #fff; padding: 2px 4px; border-radius: 2px; font-size: 10px; }
+        .op-tag { background: var(--blue); color: #fff; padding: 2px 4px; border-radius: 2px; font-size: 10px; }
         .url-input {
-            width: 100%; padding: 8px 12px; border-radius: 4px; border: 1px solid #cccccc;
-            background: #f6f7f8; color: #1c1c1c; margin-bottom: 12px; font-size: 14px;
+            width: 100%; padding: 8px 12px; border-radius: 4px; border: 1px solid var(--border);
+            background: var(--surface); color: var(--text); margin-bottom: 12px; font-size: 14px;
         }
-        .url-input::placeholder { color: #787c7e; }
+        .url-input::placeholder { color: var(--muted); }
         #videoPlayer { width: 100%; height: 400px; border-radius: 4px; background: #000; margin-bottom: 12px; }
         .video-controls {
             display: flex; justify-content: center; align-items: center; gap: 12px;
-            padding: 12px; background: #f6f7f8; border-radius: 4px; border: 1px solid #cccccc; flex-wrap: wrap;
+            padding: 12px; background: var(--surface); border-radius: 4px; border: 1px solid var(--border); flex-wrap: wrap;
         }
         .control-btn {
-            background: #0079d3; border: none; border-radius: 4px; padding: 8px 12px;
+            background: var(--blue); border: none; border-radius: 4px; padding: 8px 12px;
             color: #fff; font-size: 12px; cursor: pointer; transition: background 0.2s; font-weight: 500;
         }
-        .control-btn:hover { background: #1484d6; }
-        .control-btn:disabled { background: #cccccc; cursor: not-allowed; }
+        .control-btn:hover { background: var(--blue-hover); }
+        .control-btn:disabled { background: var(--border); cursor: not-allowed; }
 
         .chat-section { flex: 1; padding: 16px; display: flex; flex-direction: column; }
         .chat-container {
-            background: #ffffff; border: 1px solid #cccccc; border-radius: 4px;
+            background: var(--panel); border: 1px solid var(--border); border-radius: 4px;
             height: 100%; display: flex; flex-direction: column; overflow: hidden;
         }
         .chat-header {
-            background: #f6f7f8; padding: 12px 16px; border-bottom: 1px solid #cccccc;
+            background: var(--surface); padding: 12px 16px; border-bottom: 1px solid var(--border);
             display: flex; align-items: center; justify-content: space-between;
         }
-        .chat-header h3 { color: #1c1c1c; font-size: 14px; font-weight: 500; display: flex; align-items: center; gap: 8px; }
+        .chat-header h3 { color: var(--text); font-size: 14px; font-weight: 500; display: flex; align-items: center; gap: 8px; }
         .live-indicator {
-            background: #2a8c4a; color: #fff; padding: 2px 6px; border-radius: 12px;
+            background: var(--green); color: #fff; padding: 2px 6px; border-radius: 12px;
             font-size: 10px; animation: pulse 2s infinite;
         }
-        .user-count { color: #787c7e; font-size: 12px; }
+        .user-count { color: var(--muted); font-size: 12px; }
         .chat-messages { flex: 1; overflow-y: auto; padding: 16px; }
         .message { margin-bottom: 12px; animation: messageSlide 0.3s ease; }
         @keyframes messageSlide {
@@ -146,62 +166,62 @@
             to { opacity: 1; transform: translateX(0); }
         }
         .message-header { display: flex; align-items: center; gap: 8px; margin-bottom: 4px; font-size: 12px; }
-        .username { color: #0079d3; font-weight: 500; }
-        .username.self { color: #ff4500; }
-        .timestamp { color: #787c7e; }
+        .username { color: var(--blue); font-weight: 500; }
+        .username.self { color: var(--accent); }
+        .timestamp { color: var(--muted); }
         .message-content {
-            background: #f6f7f8; border: 1px solid #cccccc; border-radius: 4px;
-            padding: 8px 12px; color: #1c1c1c; font-size: 14px; line-height: 1.4; word-wrap: break-word;
+            background: var(--surface); border: 1px solid var(--border); border-radius: 4px;
+            padding: 8px 12px; color: var(--text); font-size: 14px; line-height: 1.4; word-wrap: break-word;
         }
-        .message.self .message-content { border-left: 3px solid #ff4500; }
-        .message.other .message-content { border-left: 3px solid #0079d3; }
+        .message.self .message-content { border-left: 3px solid var(--accent); }
+        .message.other .message-content { border-left: 3px solid var(--blue); }
         .message-content img { max-width: 100%; border-radius: 4px; margin-top: 4px; display: block; }
         .system-message .message-content {
-            background: #e5f6e9; border: 1px solid #2a8c4a; color: #2a8c4a;
+            background: var(--green-bg); border: 1px solid var(--green); color: var(--green);
             text-align: center; font-style: italic;
         }
-        .typing-indicator { color: #787c7e; font-style: italic; font-size: 12px; padding: 8px 12px; animation: pulse 1s infinite; }
+        .typing-indicator { color: var(--muted); font-style: italic; font-size: 12px; padding: 8px 12px; animation: pulse 1s infinite; }
         .chat-input-container {
             display: flex; align-items: center; padding: 12px; gap: 8px;
-            border-top: 1px solid #cccccc; background: #f6f7f8;
+            border-top: 1px solid var(--border); background: var(--surface);
         }
         .chat-input {
-            flex: 1; padding: 8px 12px; border-radius: 4px; border: 1px solid #cccccc;
-            background: #ffffff; color: #1c1c1c; font-size: 14px;
+            flex: 1; padding: 8px 12px; border-radius: 4px; border: 1px solid var(--border);
+            background: var(--panel); color: var(--text); font-size: 14px;
         }
-        .chat-input::placeholder { color: #787c7e; }
-        .chat-input:focus { outline: none; border-color: #0079d3; }
+        .chat-input::placeholder { color: var(--muted); }
+        .chat-input:focus { outline: none; border-color: var(--blue); }
         .icon-btn {
-            background: #ffffff; border: 1px solid #cccccc; color: #787c7e;
+            background: var(--panel); border: 1px solid var(--border); color: var(--muted);
             width: 34px; height: 34px; border-radius: 4px; cursor: pointer; font-size: 15px;
         }
-        .icon-btn:hover { color: #1c1c1c; border-color: #0079d3; }
+        .icon-btn:hover { color: var(--text); border-color: var(--blue); }
         .send-btn {
-            background: #0079d3; border: none; border-radius: 20px; padding: 8px 16px;
+            background: var(--blue); border: none; border-radius: 20px; padding: 8px 16px;
             color: #fff; cursor: pointer; font-weight: 500;
         }
-        .send-btn:hover { background: #1484d6; }
+        .send-btn:hover { background: var(--blue-hover); }
 
         /* Poll modal */
         .modal { position: fixed; inset: 0; background: rgba(0,0,0,0.8); display: none; justify-content: center; align-items: center; z-index: 10001; }
         .modal.show { display: flex; }
         .modal-content {
-            background: #ffffff; border: 1px solid #cccccc; border-radius: 8px;
+            background: var(--panel); border: 1px solid var(--border); border-radius: 8px;
             padding: 24px; max-width: 600px; width: 92%; max-height: 80vh; overflow-y: auto;
         }
-        .modal-content h2 { color: #ff4500; margin-bottom: 20px; text-align: center; }
+        .modal-content h2 { color: var(--accent); margin-bottom: 20px; text-align: center; }
         #pollQuestion { font-size: 18px; margin-bottom: 20px; text-align: center; line-height: 1.4; }
         .poll-option {
-            background: #f6f7f8; border: 1px solid #cccccc; border-radius: 8px;
+            background: var(--surface); border: 1px solid var(--border); border-radius: 8px;
             padding: 12px 16px; margin: 8px 0; cursor: pointer; transition: all 0.2s;
         }
-        .poll-option:hover { border-color: #ff4500; background: #cccccc; }
-        .poll-option.voted { border-color: #2a8c4a; background: #e5f6e9; }
+        .poll-option:hover { border-color: var(--accent); background: var(--border); }
+        .poll-option.voted { border-color: var(--green); background: var(--green-bg); }
         .poll-result {
             display: flex; justify-content: space-between; align-items: center;
-            background: #f6f7f8; border: 1px solid #cccccc; border-radius: 8px; padding: 12px 16px; margin: 8px 0;
+            background: var(--surface); border: 1px solid var(--border); border-radius: 8px; padding: 12px 16px; margin: 8px 0;
         }
-        .poll-result-bar { height: 6px; background: #ff4500; border-radius: 3px; margin-top: 8px; transition: width 0.5s ease; }
+        .poll-result-bar { height: 6px; background: var(--accent); border-radius: 3px; margin-top: 8px; transition: width 0.5s ease; }
 
         .rain-container { position: fixed; inset: 0; pointer-events: none; z-index: 9999; }
         .rain-emoji { position: absolute; font-size: 24px; animation: rainFall 3s linear infinite; opacity: 0.85; }
@@ -213,7 +233,7 @@
 
         .toast {
             position: fixed; bottom: 24px; left: 50%; transform: translateX(-50%);
-            background: #ffffff; border: 1px solid #2a8c4a; color: #2a8c4a;
+            background: var(--panel); border: 1px solid var(--green); color: var(--green);
             padding: 10px 18px; border-radius: 8px; font-size: 13px; z-index: 30000;
             opacity: 0; transition: opacity 0.3s;
         }
@@ -222,26 +242,26 @@
         /* ---------- Call ---------- */
         .call-panel {
             position: fixed; bottom: 20px; right: 20px;
-            width: 320px; background: #ffffff; border: 1px solid #cccccc;
+            width: 320px; background: var(--panel); border: 1px solid var(--border);
             border-radius: 10px; overflow: hidden; z-index: 15000;
-            box-shadow: 0 12px 40px rgba(0,0,0,0.18); display: none;
+            box-shadow: 0 12px 40px var(--shadow-lg); display: none;
         }
         .call-panel.show { display: block; }
         .call-remote-wrap { position: relative; background: #000; aspect-ratio: 4/3; }
         #remoteVideo { width: 100%; height: 100%; object-fit: cover; background: #000; }
         #localVideo {
             position: absolute; bottom: 8px; right: 8px; width: 96px; height: 72px;
-            object-fit: cover; border-radius: 6px; border: 1px solid #cccccc; background: #000;
+            object-fit: cover; border-radius: 6px; border: 1px solid var(--border); background: #000;
             transform: scaleX(-1);
         }
         .call-status {
             position: absolute; top: 8px; left: 8px; background: rgba(0,0,0,0.55);
-            color: #1c1c1c; font-size: 11px; padding: 3px 8px; border-radius: 10px;
+            color: var(--text); font-size: 11px; padding: 3px 8px; border-radius: 10px;
         }
         .call-controls { display: flex; justify-content: center; gap: 10px; padding: 10px; }
         .call-btn {
             width: 40px; height: 40px; border-radius: 50%; border: none; cursor: pointer;
-            font-size: 16px; background: #e4e6e7; color: #1c1c1c;
+            font-size: 16px; background: var(--border); color: var(--text);
         }
         .call-btn.off { background: #7c2d2d; }
         .call-btn.hangup { background: #d93a3a; }
@@ -249,27 +269,27 @@
 
         .incoming-call {
             position: fixed; bottom: 20px; right: 20px; z-index: 15001;
-            background: #ffffff; border: 1px solid #2a8c4a; border-radius: 10px;
+            background: var(--panel); border: 1px solid var(--green); border-radius: 10px;
             padding: 16px; width: 260px; display: none;
-            box-shadow: 0 12px 40px rgba(0,0,0,0.18);
+            box-shadow: 0 12px 40px var(--shadow-lg);
         }
         .incoming-call.show { display: block; }
         .incoming-call p { font-size: 13px; margin-bottom: 12px; }
         .incoming-actions { display: flex; gap: 8px; }
         .incoming-actions button { flex: 1; border: none; border-radius: 6px; padding: 8px; cursor: pointer; font-weight: 600; }
-        .accept-btn { background: #2a8c4a; color: #fff; }
+        .accept-btn { background: var(--green); color: #fff; }
         .decline-btn { background: #d93a3a; color: #fff; }
 
         /* ---------- GIF picker ---------- */
         .gif-search {
-            width: 100%; padding: 10px 12px; border-radius: 4px; border: 1px solid #cccccc;
-            background: #f6f7f8; color: #1c1c1c; font-size: 14px; margin-bottom: 12px;
+            width: 100%; padding: 10px 12px; border-radius: 4px; border: 1px solid var(--border);
+            background: var(--surface); color: var(--text); font-size: 14px; margin-bottom: 12px;
         }
-        .gif-search:focus { outline: none; border-color: #0079d3; }
+        .gif-search:focus { outline: none; border-color: var(--blue); }
         .gif-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 6px; }
-        .gif-grid img { width: 100%; border-radius: 4px; cursor: pointer; background: #f6f7f8; }
-        .gif-grid img:hover { outline: 2px solid #ff4500; }
-        .gif-note { color: #787c7e; font-size: 11px; margin-top: 10px; }
+        .gif-grid img { width: 100%; border-radius: 4px; cursor: pointer; background: var(--surface); }
+        .gif-grid img:hover { outline: 2px solid var(--accent); }
+        .gif-note { color: var(--muted); font-size: 11px; margin-top: 10px; }
 
         @media (max-width: 768px) {
             .container { flex-direction: column; height: auto; }
@@ -277,6 +297,14 @@
             #videoPlayer { height: 250px; }
         }
     </style>
+    <script>
+        // Apply saved theme before paint to avoid a flash. Default: dark.
+        (function () {
+            var t = null;
+            try { t = localStorage.getItem('reddate-theme'); } catch (e) {}
+            if (t === 'light') document.documentElement.setAttribute('data-theme', 'light');
+        })();
+    </script>
 </head>
 <body>
     <div class="rain-container" id="rainContainer"></div>
@@ -316,6 +344,7 @@
                             <span class="vote-count" id="voteCount">1</span>
                             <span class="arrow" id="downvoteArrow" title="Downvote">▼</span>
                         </div>
+                        <button class="theme-toggle" id="themeToggle" title="Toggle light/dark">☀️ Light</button>
                         <button class="share-btn" id="shareBtn">🔗 Copy invite link</button>
                     </div>
                 </div>

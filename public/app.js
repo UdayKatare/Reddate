@@ -135,6 +135,24 @@ function showToast(msg) {
     t._timer = setTimeout(() => t.classList.remove('show'), 2200);
 }
 
+// ---------------- Theme switcher (light default / dark) ----------------
+(function initThemeToggle() {
+    const btn = document.getElementById('themeToggle');
+    if (!btn) return;
+    const label = () => {
+        const light = document.documentElement.getAttribute('data-theme') === 'light';
+        btn.textContent = light ? '🌙 Dark' : '☀️ Light';
+    };
+    label();
+    btn.addEventListener('click', () => {
+        const light = document.documentElement.getAttribute('data-theme') === 'light';
+        if (light) document.documentElement.removeAttribute('data-theme');
+        else document.documentElement.setAttribute('data-theme', 'light');
+        try { localStorage.setItem('reddate-theme', light ? 'dark' : 'light'); } catch (e) {}
+        label();
+    });
+})();
+
 // ---------------- Main app ----------------
 function startApp() {
     lobbyEl.classList.add('hidden');
